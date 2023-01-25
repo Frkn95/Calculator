@@ -1,6 +1,6 @@
 const buttons = document.querySelectorAll("button");
-const input = document.querySelector("input");
-const history = document.querySelector("history");
+const input = document.getElementById("input");
+const history = document.getElementById("history");
 const decimalPoint = buttons[17]
 
 let userInput = "";
@@ -11,10 +11,11 @@ let action = "";
 buttons.forEach(element => {
     element.classList.add("button")
     element.addEventListener("click",(e) => {
-        let val = e.target.innerText
-        console.log(val)
+        buttonHandler(element)
+        buttons.forEach((btn)=> btn.blur())
     })
 });
+
 
 function add(num1, num2){
     const sum = num1 + num2
@@ -45,15 +46,21 @@ function power(num1,num2){
 }
 
 function operate(operator,numOne,numTwo){
-    if(operator === "add"){
-        return add(numOne,numTwo)
-    }else if(operator === "subtract"){
-        return subtract(numOne,numTwo)
+    showInput("all-clear",0);
+    if(operator === "plus"){
+        showInput("add", add(+numOne, +numTwo))
+    }else if(operator === "minus"){
+        showInput("add", subtract(+numOne,+numTwo))
     }else if (operator === "multiply"){
-        return multiply(numOne,numTwo)
+        showInput("add", multiply(+numOne,+numTwo))
     }else if (operator === "divide"){
-        return divide(numOne,numTwo)
+        showInput("add", divide(+numOne,+numTwo))
+    }else if (operator === "power"){
+        showInput("add", power(+numOne,+numTwo))
     }
+    firstNumber="";
+    secondNumber="";
+    action="";
 }
 
 function getRoundNumber(decNum){
@@ -65,39 +72,32 @@ function getRoundNumber(decNum){
     return decNum
 }
 
-function showHistory(givenVal){
-    switch (givenVal) {
-        case "plus":
-            givenVal.textContent += "+ "
-            break;
-        case "minus":
-            givenVal.textContent += "- "
-            break;
-        case "multiply":
-            givenVal.textContent += "* "
-            break;
-        case "divide":
-            givenVal.textContent += "÷ "
-            break;
-        case "power":
-            givenVal.textContent += "^ "
-        default:
-            givenVal.textContent += `${givenVal}`
-    }
+function showHistory(toHistory){
+    if (toHistory === 'plus') {
+        history.textContent += '+ ';
+      } else if (toHistory === 'minus') {
+        history.textContent += '- ';
+      } else if (toHistory === 'multiply') {
+        history.textContent += '× ';
+      } else if (toHistory === 'divide') {
+        history.textContent += '÷ ';
+      } else if (toHistory === 'power') {
+        history.textContent += '^ ';
+      } else {
+        history.textContent += `${toHistory} `;
+      }
 }
 
 function showInput(operator, val){
-    switch (operator) {
-        case "add":
-            if(val !== "0" || userInput !== "0"){
-                userInput += val
-                input.textContent = userInput
-            }
-            break;
-        case "all-clear":
-            input.textContent = userInput
-        case "clear":
-            userInput = "";
+    if(operator === "add"){
+        if(val !== "0" || userInput !== "0"){
+            userInput+= val
+            input.textContent=userInput
+        }
+    }else if(operator === "clear"){
+        input.textContent = userInput
+    }else if(operator ==="all-clear"){
+        userInput = "";
             decimalPoint.removeAttribute("disabled")
             if(val === "full"){
                 firstNumber = "";
@@ -106,8 +106,54 @@ function showInput(operator, val){
                 history.textContent = "";
                 input.textContent = userInput;
             }
-            break
-        default:
-            break;
     }
 }
+
+function buttonHandler(btn){
+    if(btn.classList.contains("number")){
+        showInput("add", btn.textContent)
+    }else if(btn.classList.contains("decimal")){
+        showInput("add",btn.textContent)
+    }else if(btn.classList.contains("operator")){
+        if(firstNumber === "" && secondNumber === "" && action === "" && userInput !=="" &&userInput !== "."){
+            firstNumber = userInput
+            action = btn.id
+            showHistory(firstNumber);
+            showHistory(action,"operator")
+            showInput("all-clear",0)
+        }else if (userInput !== '' && firstNumber !== '' && action !== '' && userInput !== '.') {
+            secondNumber = userInput;
+            showHistory(secondNumber);
+            operate(action, firstNumber, secondNumber);
+            action = btn.id;
+            showHistory(action, 'operator');
+            firstNumber = userInput;
+            showInput('all-clear', 0);
+          } else if (userInput === '' && firstNumber !== '' && action === '' && userInput !== '.') {
+            showHistory(firstNumber);
+            action = btn.id;
+            showHistory(action, 'operator');
+            secondNumber = userInput;
+            showInput('all-clear', 0);
+          } else if (userInput !== '' && firstNumber !== '' && action === '' && userInput !== '.') {
+            firstNumber = userInput;
+            action = btn.id;
+            showHistory(firstNumber);
+            showHistory(action, 'operator');
+            showInput('all-clear', 0);
+          }
+        }else if (btn.classList.contains('equal')) {
+          if (userInput !== '' && firstNumber !== '' && userInput !== '.') {
+            secondNumber = userInput;
+            showHistory(secondNumber);
+            showHistory('=');
+            operate(action, firstNumber, secondNumber);
+          }
+        }else if (btn.classList.contains('clear')) {
+          showInput('clear', 0);
+        } else if (btn.classList.contains('all-clear')) {
+          showInput('all-clear', 'full');
+        }
+    
+}
+
